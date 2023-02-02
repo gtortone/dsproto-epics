@@ -20,29 +20,20 @@ class EpicsEquipment(midas.frontend.EquipmentBase):
 
         midas.frontend.EquipmentBase.__init__(self, midas_client, "EpicsFrontend", default_common, default_settings)
 
-        caChannels = []
-
-        for pv in self.settings['PV list']:
-            if pv == '': 
+    def readout_func(self):
+        for pvName in self.settings['PV list']:
+            if pvName == '': 
                 continue
             try:
                 chan = CaChannel()
-                chan.searchw(pv)
-                chan.add_masked_array_event(ca.DBR_STS_DOUBLE, None, None, self.eventCB, pv)
-                chan.flush_io()
+                chan.searchw(pvName)
+                pvValue = chan.getw()
+                pvValue = round(pvValue, 2)
+                chan.pend_io()
+                #print(f"PV: {pvName} value: {pvValue}")
+                self.client.odb_set(f'{self.odb_variables_dir}/{pvName}', pvValue)
             except CaChannelException as e:
-                print(f'E: {pv} {e}')
-            else:
-                caChannels.append(chan)
-
-    def readout_func(self):
-        None
-
-    def eventCB(self, epics_args, user_args):
-        pvName = user_args[0]
-        pvValue = epics_args['pv_value']
-        pvValue = round(pvValue, 2)
-        self.client.odb_set(f'{self.odb_variables_dir}/{pvName}', pvValue)
+                print(f'E: {pvName} {e}')
 
 class EpicsFrontend(midas.frontend.FrontendBase):
     def __init__(self):
