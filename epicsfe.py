@@ -43,12 +43,14 @@ class EpicsEquipment(midas.frontend.EquipmentBase):
       pvName = user_args[0]
       pvValue = epics_args['pv_value']
       pvValue = round(pvValue, 2)
+      #print(f'cb({pvName},{pvValue})')
 
-      if self.lastWritten.get('pvName', None) != None:
-         if (time.time() - self.lastWritten['pvName']) > 10:		# check if time elapsed from last update > 10 seconds
+      if self.lastWritten.get(str(pvName), None) is None:
+         self.lastWritten[pvName] = time.time()
+      elif (time.time() - self.lastWritten[pvName]) > 10:		# check if time elapsed from last update > 10 seconds
             self.client.odb_set(f'{self.odb_variables_dir}/{pvName}', pvValue)
-
-      self.lastWritten['pvName'] = time.time()
+            self.lastWritten[pvName] = time.time()
+            #print(f'pv: {pvName}, value: {pvValue}')
 
 class EpicsFrontend(midas.frontend.FrontendBase):
    def __init__(self):
