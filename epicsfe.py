@@ -44,7 +44,7 @@ class EpicsEquipment(midas.frontend.EquipmentBase):
       pvName = user_args[0]
       pvValue = epics_args['pv_value']
       #pvValue = round(pvValue, 2)
-      print(f'cb({pvName},{pvValue})')
+      #print(f'cb({pvName},{pvValue})')
 
       if self.lastWritten.get(str(pvName), None) is None:
          self.lastWritten[pvName] = time.time()
