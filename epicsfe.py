@@ -16,7 +16,7 @@ class EpicsEquipment(midas.frontend.EquipmentBase):
       default_common.period_ms = 10000
       default_common.log_history = 1
 
-      default_settings = collections.OrderedDict([ ("PV list", [''] * 50), ])
+      default_settings = collections.OrderedDict([ ("PV list", [''] * 100), ])
 
       midas.frontend.EquipmentBase.__init__(self, midas_client, "EpicsFrontend", default_common, default_settings)
 
@@ -29,6 +29,7 @@ class EpicsEquipment(midas.frontend.EquipmentBase):
          try:
              chan = CaChannel()
              chan.searchw(pv)
+             chan.getw()   # try to read PV to avoid "read request failed"
              chan.add_masked_array_event(ca.DBR_STS_DOUBLE, None, None, self.eventCB, pv)
              chan.flush_io()
          except CaChannelException as e:
@@ -42,8 +43,8 @@ class EpicsEquipment(midas.frontend.EquipmentBase):
    def eventCB(self, epics_args, user_args):
       pvName = user_args[0]
       pvValue = epics_args['pv_value']
-      pvValue = round(pvValue, 2)
-      #print(f'cb({pvName},{pvValue})')
+      #pvValue = round(pvValue, 2)
+      print(f'cb({pvName},{pvValue})')
 
       if self.lastWritten.get(str(pvName), None) is None:
          self.lastWritten[pvName] = time.time()
